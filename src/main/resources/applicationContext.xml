@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:jdbc="http://www.springframework.org/schema/jdbc"
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xsi:schemaLocation="http://www.springframework.org/schema/jdbc http://www.springframework.org/schema/jdbc/spring-jdbc-4.3.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.3.xsd
+		http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-4.3.xsd
+		http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-4.3.xsd">
+
+
+
+<context:component-scan base-package="tommy.spring.web">
+</context:component-scan>
+<aop:aspectj-autoproxy></aop:aspectj-autoproxy>
+
+<context:property-placeholder location="classpath:config/database.properties"/>
+<bean id="dataSource" class="org.apache.commons.dbcp2.BasicDataSource" destroy-method="close">
+	<property name="driverClassName" value="${jdbc.driver}"></property>
+	<property name="url" value="${jdbc.url}"></property>
+	<property name="username" value="${jdbc.username}"></property>
+	<property name="password" value="${jdbc.password}"></property>
+</bean>
+
+<!-- 관리자지정 동작은x -->
+<bean id="txManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+	<property name="dataSource" ref="dataSource"></property>
+</bean>
+
+<!-- 관리자에게 관심사항을전달 동작은x -->
+<tx:advice id="txAdvice" transaction-manager="txManager">
+	<tx:attributes>
+		<tx:method name="get" read-only="true"/>
+		<tx:method name="*"/>
+	</tx:attributes>
+</tx:advice>
+
+
+<aop:config>						<!-- 맨앞*은 리턴값이상관없다는뜻 -->
+	<aop:pointcut expression="execution(* tommy.spring.web..*(..))"  id="txPointcut"/>
+	<aop:advisor advice-ref="txAdvice" pointcut-ref="txPointcut"/>
+</aop:config>
+
+
+
+
+
+<bean id="jdbcTemplate" class="org.springframework.jdbc.core.JdbcTemplate">
+	<property name="dataSource" ref="dataSource"></property>
+</bean><!-- dataSource(커넥션)가져옴 -->
+
+
+<bean id="sessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+		<property name="dataSource" ref="dataSource"/>
+		<property name="configLocation" value="classpath:mybatis-config.xml"/>
+</bean>
+
+<bean id="sqlSessionTemplate" class="org.mybatis.spring.SqlSessionTemplate">
+	<constructor-arg ref="sessionFactory"/>
+</bean>
+
+<!--  
+<bean id="log" class="tommy.spring.web.common.LogAdvice"></bean>
+<bean id="before" class="tommy.spring.web.common.BeforeAdvice"></bean>
+<bean id="afterReturning" class="tommy.spring.web.common.AfterReturningAdvice"></bean>
+<bean id="afterThrowing" class="tommy.spring.web.common.AfterThrowingAdvice"></bean>
+<bean id="after" class="tommy.spring.web.common.AfterAdvice"></bean>
+<bean id="around" class="tommy.spring.web.common.AroundAdvice"></bean>
+<aop:config>	
+	<aop:pointcut expression="execution(* tommy.spring.web..*Impl.*(..))" id="allPointCut"/>
+	<aop:pointcut expression="execution(* tommy.spring.web..*Impl.get*(..))" id="getPointCut"/>
+	<aop:aspect ref="around">
+		<aop:around method="aroundLog" pointcut-ref="getPointCut" />
+	</aop:aspect>
+</aop:config>
+-->
+
+
+
+<!-- 
+<bean id="userService" class="tommy.spring.web.user.impl.UserServiceImpl">
+<property name="userDAO" ref="userDAO" />
+ </bean>
+ <bean id="userDAO" class="tommy.spring.web.user.impl.UserDAO"></bean>
+ -->
+
+
+
+
+
+
+
+
+
+
+<!--  
+	<bean id="myLifeBean" class="tommy.spring.lifecycle.MyLifeBeanImpl" init-method="init">
+		<property name="greeting">
+			<value>Hello,</value>
+		</property>
+	</bean>
+
+<bean class="tommy.spring.lifecycle.CustomBeanPostProcessor"></bean>
+
+-->
+
+<!-- 
+<context:component-scan base-package="tommy.spring.polymorphism">
+</context:component-scan>
+ -->
+
+
+
+
+
+
+
+
+
+
+<!--  
+<bean id="collectionBean" class="tommy.spring.collection.CollectionBean">
+	<property name="addressList">
+		<set value-type="java.lang.String">
+			<value>서울시 종로구 묘동</value>
+			<value>서울시 동대문구 장안동</value>
+			<value>서울시 동대문구 장안동</value>
+			<value>서울시 동대문구 장안동</value>		
+		</set>
+	
+	</property>
+
+</bean>
+-->
+
+
+<!--  
+	<bean id="tv" class="tommy.spring.polymorphism.SamsungTV" p:speaker-ref="sony" p:price="3500000"/>
+		
+	
+	<bean id="sony" class="tommy.spring.polymorphism.SonySpeaker"></bean>
+	<bean id="apple" class="tommy.spring.polymorphism.AppleSpeaker"></bean>
+-->
+</beans>
